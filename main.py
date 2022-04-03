@@ -1,50 +1,49 @@
 import telebot
 from config import TOKEN, keys
+from extensions import API, APIException
 bot = telebot.TeleBot(TOKEN)
-
-class ConvertionException(Exception):
-    pass
-
-class APIException:
-    @staticmethod
-    def convert(quote: str, base: str, amount: str):
-        if quote == base:
-            raise ConvertionException(f'Невозможно конвертировать одинаковые валюты {base}')
-        try:
-            quote_tiker = keys[quote]
-        except KeyError:
-            raise ConvertionException(f'Не удалось обработать валюту {quote}')
-        try:
-            base_tiker = keys[base]
-        except KeyError:
-            raise ConvertionException(f'Не удалось обработать валюту {base}')
-        try:
-            amount = float(amount)
-        except ValueError:
-            raise ConvertionException(f'Не удалось обработать количество {amount}')
-        return (quote_tiker / base_tiker) * amount
 
 @bot.message_handler(commands=['start','help'])
 def help(message: telebot.types.Message):
-    text = 'Привет, это вводная инструкция'
-    bot.reply_to(message, text)
+
+    text = 'Привет, это вводная инструкция.\n' \
+           'Бот работает так:\n' \
+           'Человек должен отправить сообщение боту в виде \n\n' \
+           '' \
+           '*<имя валюты, цену которой он хочет узнать>* ' \
+           '*<имя валюты, в которой надо узнать цену первой валюты>* ' \
+           '*<количество первой валюты>*.\n\n' \
+           '' \
+           'Для того что бы узнать с какой валютой разрешено работать ' \
+           '- используй команду    /values \n\n' \
+           '' \
+           'Вызвать вводную инструкцию набирай    /help'
+    bot.reply_to(message, text, parse_mode="Markdown")
 
 @bot.message_handler(commands=['values'])
 def values(message: telebot.types.Message):
-    text = 'Доступные валюты: '
+    text = 'Доступные валюты: \n'
     for key in keys.keys():
-        text = '\n'.join((text, key, ))
+        text = '\n'.join((text, key ))
     bot.reply_to(message, text)
 
 @bot.message_handler(content_types=['text'])
 def convert(message: telebot.types.Message):
+    try:
+        values = message.text.split(' ')
+        if len(values) != 3:
+            raise APIException('Количество параметров неверно')
 
-    values = message.text.split(' ')
-    if len(values) != 3:
-        raise ConvertionException('Количество параметров неверно')
-    quote, base, amount = values
-    total_base = APIException.convert(quote , base, amount)
-    text = f'цена {amount} {base} в {quote} - {total_base}'
-    bot.send_message(message.chat.id, text)
+        quote, base, amount = values
+        total_base = API.get_price(quote, base, amount)
+
+    except APIException as e:
+        bot.reply_to(message, f'Ошибка пользователя. \n{e}')
+    except Exception as e:
+        bot.reply_to(message, f'Не удалось обработать команду\n{e}')
+    else:
+        text = f'цена {amount} {base} в {quote} - {total_base}'
+        bot.send_message(message.chat.id, text)
+
 
 bot.polling()
