@@ -37,3 +37,4 @@ class API:
             'RUB': 1
         }
         return (keys_two[quote_tiker] / keys_two[base_tiker]) * amount # Возврат значения в totalbase
+

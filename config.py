@@ -1,8 +1,10 @@
-TOKEN = '5172784003:AAG7mI8dwJoXUDugwt7bmUIjWmnZyBuOAbk' # Токен Telegram
-ExchangeRatesApi_key = '879f9633d045e852b4509ff3ecbb0bab'
+TOKEN = 'Впиши токен от Telegram' # Токен Telegram
+ExchangeRatesApi_key = 'Впиши ключ от https://exchangeratesapi.io/'
 keys = {
     'доллар': 'USD',
     'евро': 'EUR',
     'юань': 'CNY',
     'рубль': 'RUB'
 }
+
+
